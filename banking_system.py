@@ -67,13 +67,18 @@ def search(username):
     f = open('banking.csv', 'r')
     s_reader = csv.reader(f)
     k = []
+    found = 0
     for i in s_reader:
 
         if i[0] == username:
             k = i
+            found = 1
             break
     f.close()
-    return k
+    if found == 0:
+        return False
+    else:
+        return k
 
 
 def update(username, balance):
@@ -129,9 +134,7 @@ class Bank(User):
 
     def deposit_for_first_time(self, deposit_amount):
         self.balance = self.balance + deposit_amount
-        print(f'TRANSACTION SUCCESFUL')
         print("===============================")
-        self.transaction_history(deposit_amount, 'DEPOSITED BY', self.username)
 
     def deposit(self, deposit_amount):
         self.balance = self.balance + deposit_amount
@@ -158,17 +161,19 @@ class Bank(User):
             print('Insufficient Balance')
         else:
             k = search(user_to_be_transfered)
-            k[4] = float(k[4]) + amount_to_be_transfered
-            update(user_to_be_transfered, k[4])
-            self.balance = self.balance - amount_to_be_transfered
-            update(self.username, self.balance)
-        other_persons_age = search(user_to_be_transfered)[2]
-        self.transaction_history(amount_to_be_transfered, 'TRANSFERED TO', user_to_be_transfered)
-        append([getdate(), gettime(),amount_to_be_transfered, 'DEPOSITED FROM',self.username], f'{user_to_be_transfered}-{other_persons_age}.csv')
+            if k==False:
+                print('USER NOT FOUND')
+            else:
+                k[4] = float(k[4]) + amount_to_be_transfered
+                update(user_to_be_transfered, k[4])
+                self.balance = self.balance - amount_to_be_transfered
+                update(self.username, self.balance)
+                other_persons_age = search(user_to_be_transfered)[2]
+                self.transaction_history(amount_to_be_transfered, 'TRANSFERED TO', user_to_be_transfered)
+                append([getdate(), gettime(),amount_to_be_transfered, 'DEPOSITED FROM',self.username], f'{user_to_be_transfered}-{other_persons_age}.csv')
     def get_transaction_history(self):
         f = open(f'{self.username}-{self.age}.csv','r')
         for i in f:
-            print("===============================")
             print(i)
             print("===============================")
     def view_balance(self):
@@ -179,7 +184,40 @@ username = input('Enter Your Username:')
 print("===============================")
 password = input('Enter Your Password:')
 print("===============================")
-
+def main():
+    while True:
+        
+        
+        print('''
+    =====================
+    1.VIEW YOUR DETAILS
+    2.VIEW BALANCE
+    3.DEPOSIT
+    4.WITHDRAW
+    5.TRANSFER MONEY
+    6.GET TRANSACTION HISTORY
+    7.EXIT
+    =====================   
+        ''')
+        ch = int(input('Enter Your Choice:'))
+        print("===============================")
+        if ch==1:
+            User.show_details()
+        elif ch==2:
+            User.view_balance()
+        elif ch==3:
+            amount_to_deposit = float(input('Enter The Amount You Want To Deposit:'))
+            print("===============================")
+            User.deposit(amount_to_deposit)
+        elif ch==4:
+            amount_to_withdraw = float(input('Enter The Amount You Want To WithDraw:'))
+            User.withdraw(amount_to_withdraw)
+        elif ch==5:
+            User.transfer_amount()
+        elif ch==6:
+            User.get_transaction_history()
+        elif ch==7:
+            exit()
 
 def login():
     if password == search(username)[1]:
@@ -200,12 +238,14 @@ if os.path.exists('banking.csv'):
         pass
 else:
         write()
+
 if Check_User():
-        print('Welcome Back User Hope You Are Doing Well')
-        print("===============================")
         if login():
+            print('Welcome Back User Hope You Are Doing Well')
+            print("===============================")
             User = Bank(username,password,int(search(username)[2]),search(username)[3])
-            User.deposit(float(search(username)[4]))
+            User.deposit_for_first_time(float(search(username)[4]))
+            main()
         else:
             print('Password Is Invalid Retry')
                 
@@ -221,40 +261,9 @@ else:
         print("===============================")
         User.deposit_for_first_time(amount_to_deposit)
         User.Signup()
+        main()
 
-while True:
-    
-    
-    print('''
-=====================
-1.VIEW YOUR DETAILS
-2.VIEW BALANCE
-3.DEPOSIT
-4.WITHDRAW
-5.TRANSFER MONEY
-6.GET TRANSACTION HISTORY
-7.EXIT
-=====================   
-    ''')
-    ch = int(input('Enter Your Choice:'))
-    print("===============================")
-    if ch==1:
-        User.show_details()
-    elif ch==2:
-        User.view_balance()
-    elif ch==3:
-        amount_to_deposit = float(input('Enter The Amount You Want To Deposit:'))
-        print("===============================")
-        User.deposit(amount_to_deposit)
-    elif ch==4:
-        amount_to_withdraw = float(input('Enter The Amount You Want To WithDraw:'))
-        User.withdraw(amount_to_withdraw)
-    elif ch==5:
-        User.transfer_amount()
-    elif ch==6:
-        User.get_transaction_history()
-    elif ch==7:
-        exit()
+
 
 
 
